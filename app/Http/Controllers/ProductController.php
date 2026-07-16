@@ -14,18 +14,23 @@ class ProductController extends Controller
 {
     public function index(Request $request): Response
     {
-        $query = Product::with('reviews')
-            ->withCount('reviews');
+        //  We only eager load the category and not eager loading full review collections,
+        //  instead we use withCount and withAvg to get the count and average rating of reviews for each product.
+        $query = Product::with(['category'])
+            ->withCount('reviews')
+            ->withAvg('reviews', 'rating');
 
         // Apply category filter
         if ($request->filled('category')) {
             $query->where('category_id', $request->category);
         }
 
-        // Apply search filter
+        // This is just my preference I like the grouping of the search query in a closure
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%'.$request->search.'%')
-                ->orWhere('description', 'like', '%'.$request->search.'%');
+            $query->where(function ($searchQuery) use ($request) {
+                $searchQuery->where('name', 'like', '%' . $request->search . '%')
+                    ->orWhere('description', 'like', '%' . $request->search . '%');
+            });
         }
 
         // Apply sorting

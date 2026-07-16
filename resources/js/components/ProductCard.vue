@@ -74,7 +74,7 @@
                         </svg>
                     </div>
                     <span v-if="product.reviews_count !== undefined" class="ml-1 text-xs text-gray-500">
-                        ({{ product.reviews_count }} reviews, avg: {{ averageRating }})
+                        ({{ product.reviews_count }} reviews, avg: {{ formattedAverageRating }})
                     </span>
                 </div>
 
@@ -138,9 +138,19 @@ const isAddingToCart = ref(false);
 const addedToCart = ref(false);
 
 const averageRating = computed(() => {
+    const aggregatedAverage = Number(props.product.reviews_avg_rating);
+    if (!Number.isNaN(aggregatedAverage)) {
+        return aggregatedAverage;
+    }
+
     if (!Array.isArray(props.product.reviews) || props.product.reviews.length === 0) return 0;
     const sum = props.product.reviews.reduce((acc: number, r) => acc + (r.rating || 0), 0);
-    return Number((sum / props.product.reviews.length).toFixed(1));
+    return sum / props.product.reviews.length;
+});
+
+const formattedAverageRating = computed(() => {
+    const rounded = Number(averageRating.value.toFixed(1));
+    return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
 });
 
 const handleAddToCart = async () => {

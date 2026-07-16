@@ -13,6 +13,7 @@ export interface Product {
     discount?: string;
     category: Category;
     reviews_count?: number;
+    reviews_avg_rating?: number | string | null;
     reviews?: { rating: number }[];
     category_color?: string;
 }

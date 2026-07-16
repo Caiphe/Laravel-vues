@@ -3,6 +3,18 @@
 Please use this file to document your approach, decisions, and justifications for the tasks you've completed. This helps us understand your thought process and the reasoning behind your implementation choices.
 
 ## Task 1: Performance Investigation
+1. The catalogue index wuery loaded full `reviews` data for every lissted products, which increased payload size and query cost for the a list page
+2. the controller accessed `category` in a loop without eager-loading `category` which caused N+1 query
+3. Included database indexing 
+
+
+### Change implemented
+1. Updated products index query with eager-load category data in the base query.
+2. Replaced full review on the catalogue endpoint with aggregates:  `withCount(reviews)` and `withAvg('reviews', 'rating')`
+3. Search grouping in a closure this is just my preference 
+4. Added indexes migrations on `products` for common sort/filter patterns
+5. 
+
 
 ---
 
