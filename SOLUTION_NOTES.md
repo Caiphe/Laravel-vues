@@ -13,7 +13,12 @@ Please use this file to document your approach, decisions, and justifications fo
 2. Replaced full review on the catalogue endpoint with aggregates:  `withCount(reviews)` and `withAvg('reviews', 'rating')`
 3. Search grouping in a closure this is just my preference 
 4. Added indexes migrations on `products` for common sort/filter patterns
-5. 
+5. Updated frontend frontend rating to read `reviews_avg_rating` also updated TypeScript product type to include 'reviews_avg_rating'
+
+### Why these changes
+1. Eager-loading category removes repeated per-row category lookups (N+1)
+2. Aggreating review avoids loading full review records for each product
+3. Product indexes support faster sorting and filtering becames easy 
 
 
 ---
