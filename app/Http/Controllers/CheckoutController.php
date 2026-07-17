@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SendOrderConfirmationEmailJob;
 use App\Http\Requests\StoreOrderRequest;
 use App\Models\Order;
 use App\Service\CartService;
-use App\Service\EmailService;
 use App\Service\OrderService;
 use App\Service\PaymentService;
 use Exception;
@@ -20,13 +20,10 @@ use App\DTO\Cart\CartItemCollection;
 class CheckoutController extends Controller
 {
     private const ORDER_PROCESSING_CACHE_STATUS = 'order_processing';
-    private const EMAIL_MAX_ATTEMPTS = 3;
-    private const EMAIL_RETRY_DELAY_MS = 300;
 
     public function __construct(
         private readonly OrderService $orderService,
         private readonly PaymentService $paymentService,
-        private readonly EmailService $emailService,
         private readonly CartService $cartService
     ) {}
 
@@ -107,23 +104,11 @@ class CheckoutController extends Controller
 
     private function sendOrderConfirmationWithRetry(Order $order, CartItemCollection $cartItems): void
     {
-        try {
-            retry(self::EMAIL_MAX_ATTEMPTS, function () use ($order, $cartItems) {
-                $sent = $this->emailService->sendOrderConfirmationEmail($order, $cartItems);
+        $dispatch = SendOrderConfirmationEmailJob::dispatch($order->id, $cartItems->toArray())
+            ->onQueue('emails');
 
-                if (! $sent) {
-                    throw new Exception('Order confirmation email attempt failed.');
-                }
-
-                return true;
-            }, self::EMAIL_RETRY_DELAY_MS);
-        } catch (Exception $e) {
-            Log::error('Order confirmation email failed after retries', [
-                'order_number' => $order->order_number,
-                'email' => $order->shipping_email,
-                'attempts' => self::EMAIL_MAX_ATTEMPTS,
-                'message' => $e->getMessage(),
-            ]);
+        if (config('queue.default') === 'sync') {
+            $dispatch->onConnection('database');
         }
     }
 }

@@ -87,6 +87,12 @@
                                 <div class="text-gray-500 dark:text-gray-400">{{ auth.user.email }}</div>
                             </div>
                             <div class="border-t border-gray-100 dark:border-gray-700">
+                                <Link
+                                    :href="route('orders.index')"
+                                    class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                                >
+                                    My Orders
+                                </Link>
                                 <form @submit.prevent="logout" method="POST">
                                     <button
                                         type="submit"
