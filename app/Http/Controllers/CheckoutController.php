@@ -15,10 +15,13 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\DTO\Cart\CartItemCollection;
 
 class CheckoutController extends Controller
 {
     private const ORDER_PROCESSING_CACHE_STATUS = 'order_processing';
+    private const EMAIL_MAX_ATTEMPTS = 3;
+    private const EMAIL_RETRY_DELAY_MS = 300;
 
     public function __construct(
         private readonly OrderService $orderService,
@@ -58,7 +61,7 @@ class CheckoutController extends Controller
             }
 
             $order = $this->orderService->createOrder($cart, $request->user(), $paymentResponse);
-            $this->emailService->sendOrderConfirmationEmail($order, $cart->getItems());
+            $this->sendOrderConfirmationWithRetry($order, $cart->getItems());
 
             $this->stopProcessingOrder($request);
 
@@ -100,5 +103,27 @@ class CheckoutController extends Controller
     private function stopProcessingOrder(StoreOrderRequest $request): void
     {
         $request->session()->forget(self::ORDER_PROCESSING_CACHE_STATUS);
+    }
+
+    private function sendOrderConfirmationWithRetry(Order $order, CartItemCollection $cartItems): void
+    {
+        try {
+            retry(self::EMAIL_MAX_ATTEMPTS, function () use ($order, $cartItems) {
+                $sent = $this->emailService->sendOrderConfirmationEmail($order, $cartItems);
+
+                if (! $sent) {
+                    throw new Exception('Order confirmation email attempt failed.');
+                }
+
+                return true;
+            }, self::EMAIL_RETRY_DELAY_MS);
+        } catch (Exception $e) {
+            Log::error('Order confirmation email failed after retries', [
+                'order_number' => $order->order_number,
+                'email' => $order->shipping_email,
+                'attempts' => self::EMAIL_MAX_ATTEMPTS,
+                'message' => $e->getMessage(),
+            ]);
+        }
     }
 }
