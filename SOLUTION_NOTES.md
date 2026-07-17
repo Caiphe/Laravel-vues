@@ -97,6 +97,7 @@ Please use this file to document your approach, decisions, and justifications fo
 - Task 3 (Order History): Implemented ownership authorization via `OrderPolicy` + controller `authorize()` calls instead of relying only on query filtering, to enforce access control as a first-class architectural rule.
 - Task 3 (Order History): Used route model binding with `order_number` for cleaner, user-facing URLs and simpler controller signatures.
 - Task 3 (Order History): Added dedicated history and detail pages (`OrderHistory`, `OrderDetails`) and surfaced "My Orders" in authenticated navigation to improve discoverability.
+- Task 3 Inlcuded a button to redict the user to the order details they just created for easy accesssibility.
 
 ### Testing Approach
 - Task 1 (Performance): Verified catalogue behavior by checking search/category/sort flows still returned correct results after query refactor, and ensured review averages display in frontend reads from `reviews_avg_rating` with clean formatting (`3` / `3.5`).

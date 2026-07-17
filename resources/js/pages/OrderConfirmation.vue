@@ -122,7 +122,13 @@
                     </div>
 
                     <!-- Action Buttons -->
-                    <div class="flex justify-center">
+                    <div class="flex flex-wrap justify-center gap-3">
+                        <button
+                            @click="handleViewOrder"
+                            class="rounded-lg border border-blue-600 px-8 py-3 font-medium text-blue-600 transition-colors duration-200 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-900/20"
+                        >
+                            View This Order
+                        </button>
                         <button
                             @click="handleContinueShopping"
                             class="rounded-lg bg-blue-600 px-8 py-3 font-medium text-white transition-colors duration-200 hover:bg-blue-700"
@@ -190,5 +196,9 @@ const handleCartClick = () => {
 
 const handleContinueShopping = () => {
     router.visit('/');
+};
+
+const handleViewOrder = () => {
+    router.visit(route('orders.show', props.order.order_number));
 };
 </script>
